@@ -1,7 +1,14 @@
-from django.shortcuts import render
+import datetime
+
+from django.shortcuts import render, get_object_or_404
 from django.views import generic
+from django.contrib.auth.decorators import login_required, permission_required
 from django.contrib.auth.mixins import LoginRequiredMixin, PermissionRequiredMixin
+from django.http import HttpResponseRedirect
+from django.urls import reverse
+
 from .models import Book, Author, BookInstance, Genre
+from .forms import RenewedBookForm
 
 # Create your views here.
 def index(request):
@@ -37,6 +44,39 @@ def index(request):
 
     # Render the HTML template index.html with the data in the context variable
     return render(request, 'index.html', context=context)
+
+@login_required
+@permission_required('catalog.can_mark_returned', raise_exception=True)
+def renew_book_librarian(request, pk):
+    """View function for renewing a specific BookInstance by librarian."""
+    book_instance = get_object_or_404(BookInstance, pk=pk)
+
+    # If this is a POST request, then process the Form data
+    if request.method == 'POST':
+
+        # Create a form instance and populate it with data from the request (binding)
+        form = RenewedBookForm(request.POST)
+
+        # Check if the form is valid
+        if form.is_valid():
+            # Process the data in form.cleaned_data as required (here we just write it to the model due_back field)
+            book_instance.due_back = form.cleaned_data['renewal_date']
+            book_instance.save()
+
+            # Redirect to a new URL
+            return HttpResponseRedirect(reverse('all-borrowed'))
+
+    # Else this is a GET (or any other method) create the default form
+    else:
+        proposed_renewal_date = datetime.date.today() + datetime.timedelta(weeks=3)
+        form = RenewedBookForm(initial={ 'renewal_date': proposed_renewal_date })
+
+    context = {
+        'form': form,
+        'book_instance': book_instance,
+    }
+
+    return render(request, 'catalog/book_renew_librarian.html', context)
 
 class BookListView(generic.ListView):
     model = Book
