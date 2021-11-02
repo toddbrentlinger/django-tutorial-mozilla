@@ -2,13 +2,14 @@ import datetime
 
 from django.shortcuts import render, get_object_or_404
 from django.views import generic
+from django.views.generic.edit import CreateView, UpdateView, DeleteView
 from django.contrib.auth.decorators import login_required, permission_required
 from django.contrib.auth.mixins import LoginRequiredMixin, PermissionRequiredMixin
 from django.http import HttpResponseRedirect
-from django.urls import reverse
+from django.urls import reverse, reverse_lazy
 
-from .models import Book, Author, BookInstance, Genre
-from .forms import RenewedBookForm
+from catalog.models import Book, Author, BookInstance, Genre
+from catalog.forms import RenewedBookForm
 
 # Create your views here.
 def index(request):
@@ -85,12 +86,43 @@ class BookListView(generic.ListView):
 class BookDetailView(generic.DetailView):
     model = Book
 
+class BookCreate(CreateView):
+    permission_required = 'catalog.can_mark_returned'
+    model = Book
+    fields = ['title', 'author', 'summary', 'isbn', 'genre', 'language']
+
+class BookUpdate(UpdateView):
+    permission_required = 'catalog.can_mark_returned'
+    model = Book
+    fields = ['title', 'author', 'summary', 'isbn', 'genre', 'language']
+
+class BookDelete(DeleteView):
+    permission_required = 'catalog.can_mark_returned'
+    model = Book
+    success_url = reverse_lazy('books')
+
 class AuthorListView(generic.ListView):
     model = Author
     paginate_by = 10
 
 class AuthorDetailView(generic.DetailView):
     model = Author
+
+class AuthorCreate(CreateView):
+    permission_required = 'catalog.can_mark_returned'
+    model = Author
+    fields = ['first_name', 'last_name', 'date_of_birth', 'date_of_death']
+    initial = { 'first_name': 'John/Jane', 'last_name': 'Doe' }
+
+class AuthorUpdate(UpdateView):
+    permission_required = 'catalog.can_mark_returned'
+    model = Author
+    fields = ['first_name', 'last_name', 'date_of_birth', 'date_of_death']
+
+class AuthorDelete(DeleteView):
+    permission_required = 'catalog.can_mark_returned'
+    model = Author
+    success_url = reverse_lazy('authors')
 
 class LoanedBooksByUserListView(LoginRequiredMixin, generic.ListView):
     """Generic class-based view listing books on loan to current user."""

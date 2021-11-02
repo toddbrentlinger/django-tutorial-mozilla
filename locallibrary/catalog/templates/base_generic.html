@@ -18,7 +18,7 @@
                         <li><a href="{% url 'index' %}">Home</a></li>
                         <li><a href="{% url 'books' %}">All books</a></li>
                         <li><a href="{% url 'authors' %}">All authors</a></li>
-                        <br/>
+                        <hr />
                         {% if user.is_authenticated %}
                             <li>User: {{ user.get_username }}</li>
                             <li><a href="{% url 'my-borrowed' %}">My Borrowed</a></li>
@@ -31,6 +31,8 @@
                             <hr />
                             <li>Staff</li>
                             <li><a href="{% url 'all-borrowed' %}">All borrowed</a></li>
+                            <li><a href="{% url 'book-create' %}">Add Book</a></li>
+                            <li><a href="{% url 'author-create' %}">Add Author</a></li>
                         {% endif %}
                     </ul>
                 {% endblock %}
